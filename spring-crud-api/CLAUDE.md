@@ -191,15 +191,20 @@ Switch profile: `-Dspring.profiles.active=devint`
 
 **Isolation:** `@BeforeEach` calls `repository.deleteAll()` — every test starts with an empty database and creates only the data it needs.
 
-| Test                | Covers                                          |
-|---------------------|-------------------------------------------------|
-| `createProduct()`   | POST → 201, response has `id` and correct name  |
-| `getAll()`          | GET → 200, correct list length                  |
-| `getById_notFound()`| GET with unknown ID → 404                       |
-| `updateProduct()`   | PUT → 200, updated field value in response      |
-| `deleteProduct()`   | DELETE → 204                                    |
+| Test                          | Covers                                                  |
+|-------------------------------|---------------------------------------------------------|
+| `createProduct()`              | POST → 201, response has `id` and correct name          |
+| `getAll()`                     | GET → 200, correct list length                          |
+| `getById_found()`              | GET → 200, response has correct `id` and `name`          |
+| `getById_notFound()`           | GET with unknown ID → 404                               |
+| `createProduct_validationError()` | POST with invalid body → 400, field-level error messages |
+| `updateProduct()`              | PUT → 200, updated field value in response              |
+| `updateProduct_validationError()` | PUT with invalid body → 400, field-level error message |
+| `updateProduct_notFound()`     | PUT with unknown ID → 404                               |
+| `deleteProduct()`              | DELETE → 204                                            |
+| `deleteProduct_notFound()`     | DELETE with unknown ID → 404                            |
 
-**Known gap:** `GET /api/products/{id}` happy path (200) has no test — `ProductController.getById()` is the one uncovered method in JaCoCo. All service and model code is at 100%.
+All methods in `ProductController`, `ProductService`, and `Product` are now covered — JaCoCo reports 100% instructions/lines/methods across all measured classes.
 
 ---
 
@@ -212,14 +217,14 @@ Excluded from coverage measurement:
 - `config/**` (OpenApiConfig — pure wiring)
 - `exception/**` (thin exception classes)
 
-Last measured coverage (post Java 21 upgrade):
+Last measured coverage (post `ProductControllerTest` expansion to 10 tests):
 
 | Class              | Instructions | Lines | Methods |
 |--------------------|-------------|-------|---------|
 | `ProductService`   | 100%        | 100%  | 100%    |
-| `ProductController`| 84%         | 89%   | 83%     |
+| `ProductController`| 100%        | 100%  | 100%    |
 | `Product`          | 100%        | 100%  | 100%    |
-| **Overall**        | **96%**     | **98%**| **96%**|
+| **Overall**        | **100%**    | **100%**| **100%**|
 
 ---
 

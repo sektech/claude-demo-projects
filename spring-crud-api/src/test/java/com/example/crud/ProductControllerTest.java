@@ -47,9 +47,30 @@ class ProductControllerTest {
     }
 
     @Test
+    void getById_found() throws Exception {
+        Product saved = repository.save(new Product("Keyboard", "Mechanical keyboard", 79.99, 10));
+        mockMvc.perform(get("/api/products/" + saved.getId()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(saved.getId()))
+                .andExpect(jsonPath("$.name").value("Keyboard"));
+    }
+
+    @Test
     void getById_notFound() throws Exception {
         mockMvc.perform(get("/api/products/999"))
                 .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void createProduct_validationError() throws Exception {
+        Product p = new Product("", "Missing name", -5.0, -1);
+        mockMvc.perform(post("/api/products")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(p)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.errors.name").exists())
+                .andExpect(jsonPath("$.errors.price").exists())
+                .andExpect(jsonPath("$.errors.quantity").exists());
     }
 
     @Test
@@ -64,9 +85,35 @@ class ProductControllerTest {
     }
 
     @Test
+    void updateProduct_validationError() throws Exception {
+        Product saved = repository.save(new Product("Headset", "Wired headset", 59.99, 15));
+        saved.setName("");
+        mockMvc.perform(put("/api/products/" + saved.getId())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(saved)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.errors.name").exists());
+    }
+
+    @Test
+    void updateProduct_notFound() throws Exception {
+        Product p = new Product("Headset", "Wired headset", 59.99, 15);
+        mockMvc.perform(put("/api/products/999")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(p)))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
     void deleteProduct() throws Exception {
         Product saved = repository.save(new Product("Webcam", "HD webcam", 89.99, 8));
         mockMvc.perform(delete("/api/products/" + saved.getId()))
                 .andExpect(status().isNoContent());
+    }
+
+    @Test
+    void deleteProduct_notFound() throws Exception {
+        mockMvc.perform(delete("/api/products/999"))
+                .andExpect(status().isNotFound());
     }
 }
